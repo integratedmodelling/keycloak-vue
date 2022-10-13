@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  app:
+    image: node:16.15.0-bullseye-slim
+    container_name: app
+    entrypoint: /bin/bash
+    user: node
+    command: ./start.sh
+    volumes:
+      - ./app-vue:/app
+    working_dir: /app
+    environment:
+      - CI=true
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+  server:
+    image: quay.io/keycloak/keycloak:19.0.2
+    container_name: keycloak-server
+    restart: always
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_HOSTNAME=localhost
+    ports:
+      - 8078:8080
+    volumes:
+      - ./data/import/im.json:/opt/keycloak/data/import/im.json
+      - ./themes/im:/opt/keycloak/themes/im
+    command: ["start-dev", "--import-realm", "--spi-theme-static-max-age=-1", "--spi-theme-cache-themes=false", "--spi-theme-cache-templates=false"]
